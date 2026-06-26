@@ -22,6 +22,28 @@ class Customer extends Model
         return trim($this->first_name . ' ' . $this->last_name);
     }
 
-    public function repairs()     { return $this->hasMany(Repair::class); }
-    public function sales()       { return $this->hasMany(Sale::class); }
+    public function repairs()           { return $this->hasMany(Repair::class); }
+    public function sales()             { return $this->hasMany(Sale::class); }
+    public function quotes()            { return $this->hasMany(Sale::class)->where('type', 'quote'); }
+    public function notificationLogs()  { return $this->hasMany(NotificationLog::class); }
+
+    // Totale fatturato (solo vendite pagate, non preventivi)
+    public function getTotalInvoicedAttribute(): float
+    {
+        return $this->sales()->where('type', 'sale')->where('status', 'paid')->sum('total');
+    }
+
+    // Conteggi per la scheda cliente
+    public function getStatsAttribute(): array
+    {
+        return [
+            'repairs_count'    => $this->repairs()->count(),
+            'repairs_open'     => $this->repairs()->whereNotIn('status', ['delivered', 'cancelled'])->count(),
+            'invoices_count'   => $this->sales()->where('type', 'sale')->count(),
+            'invoices_paid'    => $this->sales()->where('type', 'sale')->where('status', 'paid')->count(),
+            'total_invoiced'   => $this->sales()->where('type', 'sale')->where('status', 'paid')->sum('total'),
+            'quotes_count'     => $this->sales()->where('type', 'quote')->count(),
+            'quotes_accepted'  => $this->sales()->where('type', 'quote')->where('quote_status', 'accepted')->count(),
+        ];
+    }
 }

@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue'
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser'
+import { BrowserMultiFormatReader } from '@zxing/browser'
+import { NotFoundException } from '@zxing/library'
 
 /**
  * Composable per lettore barcode USB (emula tastiera) e scanner fotocamera.

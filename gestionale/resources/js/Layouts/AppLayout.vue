@@ -28,6 +28,9 @@
         <NavItem :href="route('invoices.index')" icon="document-text">
           Fatture
         </NavItem>
+        <NavItem :href="route('accounting.index')" icon="banknotes">
+          Contabilità
+        </NavItem>
         <NavItem :href="route('reports.index')" icon="chart-bar">
           Report
         </NavItem>

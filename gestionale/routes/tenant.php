@@ -7,6 +7,7 @@ use App\Http\Controllers\Tenant\QuoteController;
 use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\PrintOrderController;
 use App\Http\Controllers\Tenant\SettingsController;
+use App\Http\Controllers\Tenant\AccountingController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
@@ -40,6 +41,23 @@ Route::middleware(['auth'])->group(function () {
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
+
+    // Contabilità
+    Route::get('/accounting',                                [AccountingController::class, 'index'])->name('accounting.index');
+    Route::get('/accounting/expenses',                       [AccountingController::class, 'expenses'])->name('accounting.expenses');
+    Route::post('/accounting/expenses',                      [AccountingController::class, 'storeExpense'])->name('accounting.expenses.store');
+    Route::patch('/accounting/expenses/{expense}',           [AccountingController::class, 'updateExpense'])->name('accounting.expenses.update');
+    Route::delete('/accounting/expenses/{expense}',          [AccountingController::class, 'destroyExpense'])->name('accounting.expenses.destroy');
+    Route::get('/accounting/purchases',                      [AccountingController::class, 'purchases'])->name('accounting.purchases');
+    Route::post('/accounting/purchases',                     [AccountingController::class, 'storePurchase'])->name('accounting.purchases.store');
+    Route::get('/accounting/purchases/{purchase}',           [AccountingController::class, 'showPurchase'])->name('accounting.purchases.show');
+    Route::patch('/accounting/purchases/{purchase}/status',  [AccountingController::class, 'updatePurchaseStatus'])->name('accounting.purchases.status');
+    Route::patch('/accounting/purchases/{purchase}/items/{item}', [AccountingController::class, 'updatePurchaseItem'])->name('accounting.purchases.item');
+    Route::get('/accounting/cash',                           [AccountingController::class, 'cashMovements'])->name('accounting.cash');
+    Route::post('/accounting/cash',                          [AccountingController::class, 'storeCashMovement'])->name('accounting.cash.store');
+    Route::delete('/accounting/cash/{movement}',             [AccountingController::class, 'destroyCashMovement'])->name('accounting.cash.destroy');
+    Route::post('/accounting/categories',                    [AccountingController::class, 'storeCategory'])->name('accounting.categories.store');
+    Route::delete('/accounting/categories/{category}',       [AccountingController::class, 'destroyCategory'])->name('accounting.categories.destroy');
 
     // Impostazioni tenant
     Route::get('/settings',              [SettingsController::class, 'index'])->name('settings.index');

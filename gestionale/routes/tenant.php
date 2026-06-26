@@ -8,6 +8,7 @@ use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\PrintOrderController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\AccountingController;
+use App\Http\Controllers\Tenant\PosController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
@@ -41,6 +42,17 @@ Route::middleware(['auth'])->group(function () {
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
+
+    // POS
+    Route::get('/pos',                              [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos/checkout',                    [PosController::class, 'checkout'])->name('pos.checkout');
+    Route::get('/pos/barcode',                      [PosController::class, 'barcodeSearch'])->name('pos.barcode');
+    Route::get('/pos/sales',                        [PosController::class, 'sales'])->name('pos.sales');
+    Route::get('/pos/sales/{sale}',                 [PosController::class, 'showSale'])->name('pos.sales.show');
+    Route::patch('/pos/sales/{sale}/void',          [PosController::class, 'voidSale'])->name('pos.sales.void');
+    Route::post('/pos/sumup/checkout',              [PosController::class, 'sumupCheckout'])->name('pos.sumup.checkout');
+    Route::get('/pos/sumup/status/{checkoutId}',    [PosController::class, 'sumupStatus'])->name('pos.sumup.status');
+    Route::post('/pos/woo-sync',                    [PosController::class, 'wooSync'])->name('pos.woo-sync');
 
     // Contabilità
     Route::get('/accounting',                                [AccountingController::class, 'index'])->name('accounting.index');

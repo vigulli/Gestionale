@@ -16,7 +16,7 @@
         <NavItem v-if="tenant.modules.print_orders" :href="route('print-orders.index')" icon="print">
           Ordini Stampa
         </NavItem>
-        <NavItem v-if="tenant.modules.pos" :href="route('sales.index')" icon="shopping-cart">
+        <NavItem v-if="tenant.modules.pos" :href="route('pos.index')" icon="shopping-cart">
           Vendite / POS
         </NavItem>
         <NavItem v-if="tenant.modules.inventory" :href="route('products.index')" icon="cube">

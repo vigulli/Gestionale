@@ -6,6 +6,7 @@ use App\Http\Controllers\Tenant\RepairController;
 use App\Http\Controllers\Tenant\QuoteController;
 use App\Http\Controllers\Tenant\CustomerController;
 use App\Http\Controllers\Tenant\PrintOrderController;
+use App\Http\Controllers\Tenant\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
@@ -39,5 +40,17 @@ Route::middleware(['auth'])->group(function () {
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
+
+    // Impostazioni tenant
+    Route::get('/settings',              [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/branding',    [SettingsController::class, 'updateBranding'])->name('settings.branding');
+    Route::post('/settings/business',    [SettingsController::class, 'updateBusiness'])->name('settings.business');
+    Route::post('/settings/invoice',     [SettingsController::class, 'updateInvoiceLayout'])->name('settings.invoice');
+    Route::post('/settings/smtp',        [SettingsController::class, 'updateSmtp'])->name('settings.smtp');
+    Route::post('/settings/smtp/test',   [SettingsController::class, 'testSmtp'])->name('settings.smtp.test');
+    Route::post('/settings/bulkgate',    [SettingsController::class, 'updateBulkgate'])->name('settings.bulkgate');
+    Route::post('/settings/bulkgate/test', [SettingsController::class, 'testBulkgate'])->name('settings.bulkgate.test');
+    Route::post('/settings/sumup',       [SettingsController::class, 'updateSumup'])->name('settings.sumup');
+    Route::post('/settings/modules',     [SettingsController::class, 'updateModules'])->name('settings.modules');
 
 });

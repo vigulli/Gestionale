@@ -2,28 +2,24 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\RepairController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
-/*
-|--------------------------------------------------------------------------
-| Tenant Routes
-|--------------------------------------------------------------------------
-|
-| Here you can register the tenant routes for your application.
-| These routes are loaded by the TenantRouteServiceProvider.
-|
-| Feel free to customize them however you want. Good luck!
-|
-*/
+// ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
+Route::get('/track/{token}', [RepairController::class, 'track'])->name('track.repair');
 
-Route::middleware([
-    'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
-    Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
-    });
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+Route::get('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
+Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+// ─── Protetto da autenticazione ───────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/', fn() => redirect()->route('repairs.index'));
+
+    // Riparazioni
+    Route::resource('repairs', RepairController::class);
+    Route::patch('/repairs/{repair}/status', [RepairController::class, 'updateStatus'])->name('repairs.status');
+
 });

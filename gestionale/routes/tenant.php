@@ -9,6 +9,7 @@ use App\Http\Controllers\Tenant\PrintOrderController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\AccountingController;
 use App\Http\Controllers\Tenant\PosController;
+use App\Http\Controllers\Tenant\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
@@ -42,6 +43,15 @@ Route::middleware(['auth'])->group(function () {
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
+
+    // Fatture
+    Route::get('/invoices',                  [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/create',           [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/invoices',                 [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/invoices/{sale}',           [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::patch('/invoices/{sale}/status',  [InvoiceController::class, 'updateStatus'])->name('invoices.status');
+    Route::get('/invoices/{sale}/pdf',       [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::get('/invoices/{sale}/pdf/download', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf.download');
 
     // POS
     Route::get('/pos',                              [PosController::class, 'index'])->name('pos.index');

@@ -26,7 +26,7 @@
           Clienti
         </NavItem>
         <NavItem :href="route('invoices.index')" icon="document-text">
-          Fatture
+          Fatture & QR-bill
         </NavItem>
         <NavItem :href="route('accounting.index')" icon="banknotes">
           Contabilità

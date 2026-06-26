@@ -5,10 +5,12 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\RepairController;
 use App\Http\Controllers\Tenant\QuoteController;
 use App\Http\Controllers\Tenant\CustomerController;
+use App\Http\Controllers\Tenant\PrintOrderController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
 Route::get('/track/{token}',           [RepairController::class, 'track'])->name('track.repair');
+Route::get('/track-order/{token}',     [PrintOrderController::class, 'trackPublic'])->name('track.print-order');
 Route::get('/quote/{token}',           [QuoteController::class, 'respond'])->name('quote.respond');
 Route::post('/quote/{token}/respond',  [QuoteController::class, 'submitResponse'])->name('quote.respond.submit');
 
@@ -28,6 +30,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Clienti
     Route::resource('customers', CustomerController::class);
+
+    // Ordini stampa DTF
+    Route::resource('print-orders', PrintOrderController::class);
+    Route::patch('/print-orders/{printOrder}/status',  [PrintOrderController::class, 'updateStatus'])->name('print-orders.status');
+    Route::post('/print-orders/{printOrder}/notify',   [PrintOrderController::class, 'notify'])->name('print-orders.notify');
 
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);

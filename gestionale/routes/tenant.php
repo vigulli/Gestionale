@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\RepairController;
 use App\Http\Controllers\Tenant\QuoteController;
+use App\Http\Controllers\Tenant\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
@@ -24,6 +25,9 @@ Route::middleware(['auth'])->group(function () {
     // Riparazioni
     Route::resource('repairs', RepairController::class);
     Route::patch('/repairs/{repair}/status', [RepairController::class, 'updateStatus'])->name('repairs.status');
+
+    // Clienti
+    Route::resource('customers', CustomerController::class);
 
     // Preventivi
     Route::resource('quotes', QuoteController::class)->except(['edit', 'update', 'destroy']);

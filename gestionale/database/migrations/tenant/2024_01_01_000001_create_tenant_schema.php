@@ -194,8 +194,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('type'); // repair | product | print_order
-            $table->integer('width_mm')->default(62);
-            $table->integer('height_mm')->default(29);
+            $table->integer('width_mm')->default(38);
+            $table->integer('height_mm')->default(90);
             $table->json('fields'); // campi da stampare con posizioni
             $table->boolean('show_qr')->default(true);
             $table->boolean('show_barcode')->default(false);

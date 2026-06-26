@@ -12,19 +12,16 @@ use App\Http\Controllers\Tenant\PosController;
 use App\Http\Controllers\Tenant\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
-// ─── Pubblico: solo chi ha il token ───────────────────────────────────────────
-Route::get('/track/{token}',           [RepairController::class, 'track'])->name('track.repair');
-Route::get('/track-order/{token}',     [PrintOrderController::class, 'trackPublic'])->name('track.print-order');
-Route::get('/quote/{token}',           [QuoteController::class, 'respond'])->name('quote.respond');
-Route::post('/quote/{token}/respond',  [QuoteController::class, 'submitResponse'])->name('quote.respond.submit');
+// ─── Pubblico: solo chi ha il token (NON richiedono tenant in sessione) ──────
+// Nota: queste rotte sono già wrappate nel middleware InitializeTenancyBySession
+// dal web.php, ma i token pubblici bypassano l'auth — gestito nel middleware.
+Route::get('/track/{token}',           [RepairController::class, 'track'])->name('track.repair')->withoutMiddleware([\App\Http\Middleware\InitializeTenancyBySession::class]);
+Route::get('/track-order/{token}',     [PrintOrderController::class, 'trackPublic'])->name('track.print-order')->withoutMiddleware([\App\Http\Middleware\InitializeTenancyBySession::class]);
+Route::get('/quote/{token}',           [QuoteController::class, 'respond'])->name('quote.respond')->withoutMiddleware([\App\Http\Middleware\InitializeTenancyBySession::class]);
+Route::post('/quote/{token}/respond',  [QuoteController::class, 'submitResponse'])->name('quote.respond.submit')->withoutMiddleware([\App\Http\Middleware\InitializeTenancyBySession::class]);
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-Route::get('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])->name('login');
-Route::post('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
-Route::post('/logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-// ─── Protetto da autenticazione ───────────────────────────────────────────────
-Route::middleware(['auth'])->group(function () {
+// ─── Protetto da autenticazione + tenant in sessione ─────────────────────────
+Route::group([], function () {
 
     Route::get('/', fn() => redirect()->route('repairs.index'));
 

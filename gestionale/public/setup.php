@@ -48,6 +48,7 @@ DB_DATABASE={$dbName}
 DB_USERNAME={$dbUser}
 DB_PASSWORD={$dbPass}
 
+TENANCY_DATABASE_PREFIX=wd4bm9_tenant_
 TENANCY_DATABASE_USERNAME={$dbUser}
 TENANCY_DATABASE_PASSWORD={$dbPass}
 
@@ -231,9 +232,9 @@ $savedAppUrl = envVal('APP_URL', '');
 
         <label>Database tenant</label>
         <select name="tenant_db">
-          <option value="gestionale_ilab">gestionale_ilab (i-Lab)</option>
-          <option value="gestionale_nipotetech">gestionale_nipotetech (NipoteTech)</option>
-          <option value="gestionale_dtflab">gestionale_dtflab (DTF Lab)</option>
+          <option value="wd4bm9_tenant_ilab">wd4bm9_tenant_ilab (i-Lab)</option>
+          <option value="wd4bm9_tenant_nipotetech">wd4bm9_tenant_nipotetech (NipoteTech)</option>
+          <option value="wd4bm9_tenant_dtflab">wd4bm9_tenant_dtflab (DTF Lab)</option>
         </select>
 
         <label>Nome admin</label>

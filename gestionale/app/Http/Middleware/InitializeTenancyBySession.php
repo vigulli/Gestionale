@@ -17,14 +17,14 @@ class InitializeTenancyBySession
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Nessun tenant selezionato'], 403);
             }
-            return redirect()->route('tenant.select');
+            return redirect('/');
         }
 
         $tenant = Tenant::find($tenantId);
 
         if (! $tenant) {
             session()->forget('current_tenant_id');
-            return redirect()->route('tenant.select')->withErrors(['tenant' => 'Attività non trovata.']);
+            return redirect('/')->withErrors(['tenant' => 'Attività non trovata.']);
         }
 
         // Initialize tenancy (switches DB connection to tenant database)

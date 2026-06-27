@@ -15,7 +15,7 @@ class CentralAuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('tenant.select');
+            return redirect('/');
         }
         return Inertia::render('Auth/Login');
     }
@@ -33,7 +33,7 @@ class CentralAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('tenant.select');
+        return redirect('/');
     }
 
     public function logout(Request $request)
@@ -42,7 +42,7 @@ class CentralAuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('login');
+        return redirect('/login');
     }
 
     // ─── Tenant selector ──────────────────────────────────────────────────────

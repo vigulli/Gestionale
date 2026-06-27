@@ -1,18 +1,10 @@
 -- ============================================================
---  GESTIONALE — SCHEMA TENANT
---  Importa questo file in CIASCUNO dei 3 database tenant:
---    gestionale_ilab
---    gestionale_nipotetech
---    gestionale_dtflab
---
---  Via phpMyAdmin: seleziona il DB tenant → Importa → questo file
+-- GESTIONALE — Schema Tenant
+-- Importa in: wd4bm9_tenant_ilab, wd4bm9_tenant_nipotetech, wd4bm9_tenant_dtflab
 -- ============================================================
 
-SET NAMES utf8mb4;
-SET time_zone = '+00:00';
-SET foreign_key_checks = 0;
+SET FOREIGN_KEY_CHECKS = 0;
 
--- ─── Users (staff per questo tenant) ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -26,7 +18,13 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Customers ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `first_name` varchar(255) NOT NULL,
@@ -40,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `country` varchar(255) NOT NULL DEFAULT 'CH',
   `tax_number` varchar(255) DEFAULT NULL,
   `category` varchar(255) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `loyalty_points` decimal(10,2) NOT NULL DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -48,7 +46,6 @@ CREATE TABLE IF NOT EXISTS `customers` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Service categories ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `service_categories` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -59,12 +56,11 @@ CREATE TABLE IF NOT EXISTS `service_categories` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Services ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `services` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `service_category_id` bigint unsigned DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
+  `description` text,
   `type` varchar(255) NOT NULL DEFAULT 'repair',
   `price_min` decimal(10,2) DEFAULT NULL,
   `price_max` decimal(10,2) DEFAULT NULL,
@@ -79,14 +75,13 @@ CREATE TABLE IF NOT EXISTS `services` (
   CONSTRAINT `services_service_category_id_foreign` FOREIGN KEY (`service_category_id`) REFERENCES `service_categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Products / Inventory ─────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `products` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `sku` varchar(255) DEFAULT NULL,
   `barcode` varchar(255) DEFAULT NULL,
   `type` varchar(255) NOT NULL DEFAULT 'part',
-  `description` text DEFAULT NULL,
+  `description` text,
   `purchase_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   `sell_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   `vat_rate` varchar(255) NOT NULL DEFAULT '7.7',
@@ -100,7 +95,6 @@ CREATE TABLE IF NOT EXISTS `products` (
   UNIQUE KEY `products_barcode_unique` (`barcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Repairs ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `repairs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `ticket_number` varchar(255) NOT NULL,
@@ -110,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `repairs` (
   `device_serial` varchar(255) DEFAULT NULL,
   `device_password` varchar(255) DEFAULT NULL,
   `problem_description` text NOT NULL,
-  `technician_notes` text DEFAULT NULL,
+  `technician_notes` text,
   `status` varchar(255) NOT NULL DEFAULT 'received',
   `priority` varchar(255) NOT NULL DEFAULT 'normal',
   `assigned_to` bigint unsigned DEFAULT NULL,
@@ -134,12 +128,11 @@ CREATE TABLE IF NOT EXISTS `repairs` (
   CONSTRAINT `repairs_assigned_to_foreign` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Repair status history ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `repair_status_history` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `repair_id` bigint unsigned NOT NULL,
   `status` varchar(255) NOT NULL,
-  `note` text DEFAULT NULL,
+  `note` text,
   `user_id` bigint unsigned DEFAULT NULL,
   `changed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -151,7 +144,6 @@ CREATE TABLE IF NOT EXISTS `repair_status_history` (
   CONSTRAINT `repair_status_history_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Repair items ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `repair_items` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `repair_id` bigint unsigned NOT NULL,
@@ -165,10 +157,13 @@ CREATE TABLE IF NOT EXISTS `repair_items` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `repair_items_repair_id_foreign` (`repair_id`),
-  CONSTRAINT `repair_items_repair_id_foreign` FOREIGN KEY (`repair_id`) REFERENCES `repairs` (`id`) ON DELETE CASCADE
+  KEY `repair_items_service_id_foreign` (`service_id`),
+  KEY `repair_items_product_id_foreign` (`product_id`),
+  CONSTRAINT `repair_items_repair_id_foreign` FOREIGN KEY (`repair_id`) REFERENCES `repairs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `repair_items_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `repair_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Print orders ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `print_orders` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `order_number` varchar(255) NOT NULL,
@@ -178,14 +173,14 @@ CREATE TABLE IF NOT EXISTS `print_orders` (
   `garment_color` varchar(255) DEFAULT NULL,
   `garment_size` varchar(255) DEFAULT NULL,
   `quantity` int NOT NULL DEFAULT '1',
-  `print_description` text DEFAULT NULL,
+  `print_description` text,
   `print_file_path` varchar(255) DEFAULT NULL,
   `print_position` varchar(255) DEFAULT NULL,
   `print_size_cm` varchar(255) DEFAULT NULL,
   `unit_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   `total_price` decimal(10,2) NOT NULL DEFAULT '0.00',
   `vat_rate` varchar(255) NOT NULL DEFAULT '7.7',
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `assigned_to` bigint unsigned DEFAULT NULL,
   `tracking_token` varchar(255) DEFAULT NULL,
   `deadline_at` timestamp NULL DEFAULT NULL,
@@ -196,10 +191,11 @@ CREATE TABLE IF NOT EXISTS `print_orders` (
   UNIQUE KEY `print_orders_order_number_unique` (`order_number`),
   UNIQUE KEY `print_orders_tracking_token_unique` (`tracking_token`),
   KEY `print_orders_customer_id_foreign` (`customer_id`),
-  CONSTRAINT `print_orders_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`)
+  KEY `print_orders_assigned_to_foreign` (`assigned_to`),
+  CONSTRAINT `print_orders_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
+  CONSTRAINT `print_orders_assigned_to_foreign` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Sales ────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `sales` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `invoice_number` varchar(255) NOT NULL,
@@ -214,14 +210,14 @@ CREATE TABLE IF NOT EXISTS `sales` (
   `paid_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `discount_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `vat_mode` varchar(255) NOT NULL DEFAULT 'inclusive',
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `pdf_path` varchar(255) DEFAULT NULL,
   `qr_bill_generated` tinyint(1) NOT NULL DEFAULT '0',
   `quote_token` varchar(255) DEFAULT NULL,
   `quote_status` varchar(255) DEFAULT NULL,
   `quote_responded_at` timestamp NULL DEFAULT NULL,
   `quote_response_ip` varchar(255) DEFAULT NULL,
-  `quote_rejection_reason` text DEFAULT NULL,
+  `quote_rejection_reason` text,
   `source_type` varchar(255) NOT NULL,
   `source_id` bigint unsigned NOT NULL,
   `issued_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -233,10 +229,10 @@ CREATE TABLE IF NOT EXISTS `sales` (
   UNIQUE KEY `sales_invoice_number_unique` (`invoice_number`),
   UNIQUE KEY `sales_quote_token_unique` (`quote_token`),
   KEY `sales_customer_id_foreign` (`customer_id`),
+  KEY `sales_source_type_source_id_index` (`source_type`,`source_id`),
   CONSTRAINT `sales_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Sale items ───────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `sale_items` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `sale_id` bigint unsigned NOT NULL,
@@ -252,10 +248,13 @@ CREATE TABLE IF NOT EXISTS `sale_items` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sale_items_sale_id_foreign` (`sale_id`),
-  CONSTRAINT `sale_items_sale_id_foreign` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE CASCADE
+  KEY `sale_items_product_id_foreign` (`product_id`),
+  KEY `sale_items_service_id_foreign` (`service_id`),
+  CONSTRAINT `sale_items_sale_id_foreign` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `sale_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `sale_items_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Label templates ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `label_templates` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -271,7 +270,6 @@ CREATE TABLE IF NOT EXISTS `label_templates` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Notification logs ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `notification_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `customer_id` bigint unsigned DEFAULT NULL,
@@ -288,10 +286,10 @@ CREATE TABLE IF NOT EXISTS `notification_logs` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `notification_logs_customer_id_foreign` (`customer_id`),
+  KEY `notification_logs_notifiable_type_notifiable_id_index` (`notifiable_type`,`notifiable_id`),
   CONSTRAINT `notification_logs_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Expense categories ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `expense_categories` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -303,7 +301,6 @@ CREATE TABLE IF NOT EXISTS `expense_categories` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Expenses ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `expenses` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `expense_category_id` bigint unsigned DEFAULT NULL,
@@ -317,7 +314,7 @@ CREATE TABLE IF NOT EXISTS `expenses` (
   `receipt_path` varchar(255) DEFAULT NULL,
   `is_recurring` tinyint(1) NOT NULL DEFAULT '0',
   `recurring_period` varchar(255) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `user_id` bigint unsigned DEFAULT NULL,
   `expense_date` date NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -325,10 +322,11 @@ CREATE TABLE IF NOT EXISTS `expenses` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `expenses_expense_category_id_foreign` (`expense_category_id`),
-  CONSTRAINT `expenses_expense_category_id_foreign` FOREIGN KEY (`expense_category_id`) REFERENCES `expense_categories` (`id`) ON DELETE SET NULL
+  KEY `expenses_user_id_foreign` (`user_id`),
+  CONSTRAINT `expenses_expense_category_id_foreign` FOREIGN KEY (`expense_category_id`) REFERENCES `expense_categories` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `expenses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Purchases ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `purchases` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `purchase_number` varchar(255) NOT NULL,
@@ -344,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `purchases` (
   `paid_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `invoice_ref` varchar(255) DEFAULT NULL,
   `receipt_path` varchar(255) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `user_id` bigint unsigned DEFAULT NULL,
   `ordered_at` date NOT NULL,
   `received_at` date DEFAULT NULL,
@@ -353,10 +351,11 @@ CREATE TABLE IF NOT EXISTS `purchases` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `purchases_purchase_number_unique` (`purchase_number`)
+  UNIQUE KEY `purchases_purchase_number_unique` (`purchase_number`),
+  KEY `purchases_user_id_foreign` (`user_id`),
+  CONSTRAINT `purchases_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Purchase items ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `purchase_items` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `purchase_id` bigint unsigned NOT NULL,
@@ -372,10 +371,11 @@ CREATE TABLE IF NOT EXISTS `purchase_items` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `purchase_items_purchase_id_foreign` (`purchase_id`),
-  CONSTRAINT `purchase_items_purchase_id_foreign` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE CASCADE
+  KEY `purchase_items_product_id_foreign` (`product_id`),
+  CONSTRAINT `purchase_items_purchase_id_foreign` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `purchase_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Cash movements ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `cash_movements` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `type` varchar(255) NOT NULL,
@@ -384,26 +384,16 @@ CREATE TABLE IF NOT EXISTS `cash_movements` (
   `amount` decimal(10,2) NOT NULL,
   `payment_method` varchar(255) NOT NULL DEFAULT 'cash',
   `reference` varchar(255) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
+  `notes` text,
   `user_id` bigint unsigned DEFAULT NULL,
   `movement_date` date NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `cash_movements_expense_category_id_foreign` (`expense_category_id`),
-  CONSTRAINT `cash_movements_expense_category_id_foreign` FOREIGN KEY (`expense_category_id`) REFERENCES `expense_categories` (`id`) ON DELETE SET NULL
+  KEY `cash_movements_user_id_foreign` (`user_id`),
+  CONSTRAINT `cash_movements_expense_category_id_foreign` FOREIGN KEY (`expense_category_id`) REFERENCES `expense_categories` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `cash_movements_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ─── Migration tracking per tenant ────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS `migrations` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `migration` varchar(255) NOT NULL,
-  `batch` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES
-  ('2024_01_01_000001_create_tenant_schema', 1),
-  ('2024_01_02_000001_create_accounting_tables', 1);
-
-SET foreign_key_checks = 1;
+SET FOREIGN_KEY_CHECKS = 1;

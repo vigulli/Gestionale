@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestionale</title>
     @inertiaHead
-    <link rel="stylesheet" href="/build/assets/AppLayout-DGu_CYRn.css">
-    <script type="module" src="/build/assets/app-Cs-XpDzy.js"></script>
+    @vite(['resources/js/app.js'])
 </head>
 <body class="antialiased">
     @inertia

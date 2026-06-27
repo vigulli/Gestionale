@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestionale</title>
     @inertiaHead
+    @routes
     <link rel="stylesheet" href="/build/assets/AppLayout.css">
     <script type="module" src="/build/assets/app.js"></script>
 </head>

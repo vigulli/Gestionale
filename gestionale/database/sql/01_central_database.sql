@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `migrations` (
 
 -- Dati tenant
 INSERT INTO `tenants` (`id`, `name`, `primary_color`, `secondary_color`, `module_repairs`, `module_print_orders`, `module_pos`, `module_inventory`, `invoice_prefix`, `created_at`, `updated_at`) VALUES
-('i-lab',      'i-Lab',      '#6366f1', '#818cf8', 1, 0, 1, 1, 'IL-',  NOW(), NOW()),
+('ilab', 'i-Lab',      '#6366f1', '#818cf8', 1, 0, 1, 1, 'IL-',  NOW(), NOW()),
 ('nipotetech', 'NipoteTech', '#10b981', '#34d399', 1, 0, 1, 1, 'NT-',  NOW(), NOW()),
 ('dtflab',     'DTF Lab',    '#f59e0b', '#fbbf24', 0, 1, 0, 1, 'DTF-', NOW(), NOW());
 

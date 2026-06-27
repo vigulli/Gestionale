@@ -88,25 +88,26 @@ ENV;
     }
 
     if ($step === '3') {
-        // Crea utente admin in un tenant
-        $tenantDb = $_POST['tenant_db'] ?? '';
-        $dbHost   = $_POST['db_host'] ?? '127.0.0.1';
-        $dbPort   = $_POST['db_port'] ?? '3306';
-        $dbUser   = $_POST['db_user'] ?? '';
-        $dbPass   = $_POST['db_pass'] ?? '';
-        $name     = $_POST['admin_name'] ?? 'Admin';
-        $email    = $_POST['admin_email'] ?? '';
-        $password = $_POST['admin_password'] ?? '';
+        // Crea utente admin nel database centrale (usato per il login)
+        $centralDb = $_POST['central_db'] ?? '';
+        $dbHost    = $_POST['db_host'] ?? '127.0.0.1';
+        $dbPort    = $_POST['db_port'] ?? '3306';
+        $dbUser    = $_POST['db_user'] ?? '';
+        $dbPass    = $_POST['db_pass'] ?? '';
+        $name      = $_POST['admin_name'] ?? 'Admin';
+        $email     = $_POST['admin_email'] ?? '';
+        $password  = $_POST['admin_password'] ?? '';
 
         if (strlen($password) < 8) {
             $error = '❌ La password deve essere di almeno 8 caratteri.';
         } else {
             try {
-                $pdo = new PDO("mysql:host={$dbHost};port={$dbPort};dbname={$tenantDb};charset=utf8mb4", $dbUser, $dbPass);
+                $pdo = new PDO("mysql:host={$dbHost};port={$dbPort};dbname={$centralDb};charset=utf8mb4", $dbUser, $dbPass);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE password=?");
-                $stmt->execute([$name, $email, $hash, $hash]);
-                $message = "✅ Utente admin creato per il database {$tenantDb}!";
+                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE password=VALUES(password), name=VALUES(name), updated_at=NOW()");
+                $stmt->execute([$name, $email, $hash]);
+                $message = "✅ Utente admin creato nel database centrale {$centralDb}! Ora puoi fare il login.";
             } catch (Exception $e) {
                 $error = '❌ Errore: ' . $e->getMessage();
             }
@@ -222,20 +223,21 @@ $savedAppUrl = envVal('APP_URL', '');
 
     <?php elseif ($step === '3'): ?>
       <h2>Passo 3 — Crea utente admin</h2>
-      <p class="subtitle">Crea un utente admin in ciascun database tenant. Ripeti per i-lab, nipotetech, dtflab.</p>
+      <p class="subtitle">Il login usa il database <strong>centrale</strong>. Crea qui l'utente admin nel database centrale.</p>
+
+      <div class="warn" style="background:#fef3c7;border-color:#f59e0b;">
+        ℹ️ <strong>IMPORTANTE:</strong> L'utente deve essere creato nel database <strong>centrale</strong> (<code><?= htmlspecialchars($savedDbName) ?></code>), non nei database tenant. Questo è il database che gestisce l'autenticazione.
+      </div>
 
       <form method="POST" action="setup.php?step=3">
         <input type="hidden" name="db_host" value="<?= htmlspecialchars($savedDbHost) ?>">
         <input type="hidden" name="db_port" value="<?= htmlspecialchars($savedDbPort) ?>">
         <input type="hidden" name="db_user" value="<?= htmlspecialchars($savedDbUser) ?>">
         <input type="hidden" name="db_pass" value="<?= htmlspecialchars($savedDbPass) ?>">
+        <input type="hidden" name="central_db" value="<?= htmlspecialchars($savedDbName) ?>">
 
-        <label>Database tenant</label>
-        <select name="tenant_db">
-          <option value="wd4bm9_tenant_ilab">wd4bm9_tenant_ilab (i-Lab)</option>
-          <option value="wd4bm9_tenant_nipotetech">wd4bm9_tenant_nipotetech (NipoteTech)</option>
-          <option value="wd4bm9_tenant_dtflab">wd4bm9_tenant_dtflab (DTF Lab)</option>
-        </select>
+        <label>Database centrale (login)</label>
+        <input value="<?= htmlspecialchars($savedDbName) ?>" disabled style="background:#f3f4f6;color:#6b7280;">
 
         <label>Nome admin</label>
         <input name="admin_name" value="Admin" required>
@@ -246,12 +248,12 @@ $savedAppUrl = envVal('APP_URL', '');
         <label>Password admin (min. 8 caratteri)</label>
         <input name="admin_password" type="password" required minlength="8">
 
-        <button class="btn" type="submit">Crea utente admin</button>
+        <button class="btn" type="submit">Crea utente admin nel DB centrale</button>
       </form>
 
       <div class="warn">
-        ⚠️ <strong>IMPORTANTE:</strong> dopo aver creato tutti gli utenti, <strong>elimina questo file</strong>
-        <code>public/setup.php</code> dal server per sicurezza!
+        ⚠️ <strong>SICUREZZA:</strong> dopo aver creato l'utente, <strong>elimina questo file</strong>
+        <code>public/setup.php</code> dal server!
       </div>
 
     <?php endif; ?>

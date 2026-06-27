@@ -6,22 +6,9 @@
     <title>Gestionale</title>
     @inertiaHead
     <link rel="stylesheet" href="/build/assets/AppLayout-DGu_CYRn.css">
-    <script>
-        (function(){var e=document,t=e.createElement("script");
-        if(!("noModule"in t)){
-            t.src="/build/assets/polyfills-legacy-CG9wL43g.js";
-            e.head.appendChild(t);
-            var a=e.createElement("script");
-            a.setAttribute("nomodule","");
-            a.src="/build/assets/app-legacy-4fsvpQRF.js";
-            e.head.appendChild(a);
-        } else {
-            var m=e.createElement("script");
-            m.type="module";
-            m.src="/build/assets/app-CAKW05qT.js";
-            e.head.appendChild(m);
-        }})();
-    </script>
+    <script nomodule src="/build/assets/polyfills-legacy-CG9wL43g.js"></script>
+    <script nomodule src="/build/assets/app-legacy-DjzOU6JM.js"></script>
+    <script type="module" src="/build/assets/app-DluYRK6_.js"></script>
 </head>
 <body class="antialiased">
     @inertia
